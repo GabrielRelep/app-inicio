@@ -1,12 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import Login from './src/pages/Login';
+import { useFonts, Comfortaa_400Regular,Comfortaa_700Bold } from '@expo-google-fonts/comfortaa';
+import Home from './src/pages/Home';
+import Trips from './src/pages/Trips';
+
 
 export default function App() {
+  const [loaded] = useFonts({
+    Comfortaa_400Regular,
+    Comfortaa_700Bold
+  });
+  if (!loaded) {
+    return null;
+  }
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Home/>
   );
 }
 
