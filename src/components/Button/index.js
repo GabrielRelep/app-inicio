@@ -1,16 +1,13 @@
-import React from 'react';
-import { View } from 'react-native';
-import { TouchableOpacity } from 'react-native-web';
+import React from "react";
 
- import { Container,Label } from './styles';
+import { Container, Label } from "./styles";
 
-const Button = ({label,color,...rest}) => {
+const Button = ({ label, color, ...rest }) => {
   return (
-    <Container {...rest} color={color} >
+    <Container {...rest} color={color}>
       <Label>{label}</Label>
-
     </Container>
   );
-}
+};
 
 export default Button;
