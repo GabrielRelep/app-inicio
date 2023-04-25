@@ -23,6 +23,7 @@ module.exports.login = async (data) => {
       };
     })
     .catch((error) => {
+      console.log(error);
       if (error.response.status === 401) {
         response = {
           code: 401,

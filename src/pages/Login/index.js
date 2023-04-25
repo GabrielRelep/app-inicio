@@ -56,7 +56,7 @@ function Login() {
         initialValues={{ phone: "", password: "", appId: "" }}
         onSubmit={async (values, { setErrors }) => {
           Keyboard.dismiss();
-          setLoading(true);
+          // setLoading(true);
 
           const res = await login({
             appId: values.appId,
@@ -86,6 +86,7 @@ function Login() {
               });
             }
           }
+
         }}
         validationSchema={validationSchema}
       >

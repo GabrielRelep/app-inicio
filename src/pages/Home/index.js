@@ -13,6 +13,7 @@ import { Container, Imagem, Title } from "./styles";
 const Home = () => {
   const { setUser } = useContext(AuthContext);
   const { popup } = useContext(PopupContext);
+  console.log(popup);
   const [locationPermited, setLocationPermited] = useState(true);
   const [isEnabled, setIsEnabled] = useState(false);
 
@@ -23,7 +24,6 @@ const Home = () => {
         distanceInterval: 1,
       },
       (userLoc) => {
-        console.log(userLoc);
         //Retorna latitude e logitude dentro da variável "userLoc"
       }
     );
@@ -31,8 +31,6 @@ const Home = () => {
 
   async function requestPermition() {
     let { status } = await Location.requestForegroundPermissionsAsync();
-
-    console.log(status);
 
     if (status !== "granted") {
       setLocationPermited(false);
