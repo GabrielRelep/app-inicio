@@ -70,6 +70,7 @@ function Login() {
             );
 
             await AsyncStorage.setItem("@user", JSON.stringify(driverData));
+            await AsyncStorage.setItem("accessToken", driverData.accessToken);
             setUser(driverData);
           } else {
             if (res.code === 404) {

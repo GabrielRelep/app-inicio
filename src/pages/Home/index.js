@@ -9,13 +9,56 @@ import AuthContext from "../../contexts/auth";
 import PopupContext from "../../contexts/popup";
 import Popup from "../Popup";
 import { Container, Imagem, Title } from "./styles";
+import { io } from 'socket.io-client';
 
 const Home = () => {
   const { setUser } = useContext(AuthContext);
   const { popup } = useContext(PopupContext);
-  console.log(popup);
   const [locationPermited, setLocationPermited] = useState(true);
   const [isEnabled, setIsEnabled] = useState(false);
+  const [accessToken, setAccessToken] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  let socket;
+
+  socket = io(`https://chevette.herokuapp.com/drivers`, {
+    auth: {
+      accessToken,
+    },
+    transports: ['websocket'],
+  });
+  console.log({ isConnected });
+
+  socket.on('connect', async () => {
+    try {
+      if (socket.connected) setIsConnected(true);
+      else setIsConnected(false);
+    } catch (error) {
+      console.log(error)
+    }
+  });
+
+  if (isEnabled && isConnected) {
+    socket.on('receive-trip', data => {
+      console.log(data);
+    });
+  }
+
+  socket.on('connect_error', err => {
+    console.log('Error on Socket Connection', err);
+  });
+
+  socket.on('connect_failed', err => {
+    console.log('Socket Connection Failed', err);
+  });
+
+  socket.on('disconnect', err => {
+    console.log('Socket Disconnected', err);
+  });
+
+  async function getAccessToken() {
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    setAccessToken(accessToken);
+  }
 
   async function loadLocation() {
     await Location.watchPositionAsync(
@@ -42,6 +85,7 @@ const Home = () => {
 
   useEffect(() => {
     requestPermition();
+    getAccessToken();
     loadLocation();
   }, []);
 
