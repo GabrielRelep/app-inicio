@@ -24,7 +24,8 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "App requires geolocation to improve the quality of the service",
         "NSLocationAlwaysUsageDescription": "App requires geolocation to improve the quality of the service",
         "NSLocationWhenInUseUsageDescription": "App requires geolocation to improve the quality of the service",
-        "NSCameraUsageDescription": "The picture will be used to inform the state of the packages during delivery"
+        "NSCameraUsageDescription": "The picture will be used to inform the state of the packages during delivery",
+        "NSMicrophoneUsage": true
       }
     },
     "android": {
@@ -32,7 +33,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.rodrigofacio.appviagem"
+      "package": "com.rodrigofacio.appviagem",
+      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE", "READ_MEDIA_AUDIO", "WRITE_MEDIA_AUDIO"]
     },
     "web": {
       "favicon": "./assets/favicon.png"

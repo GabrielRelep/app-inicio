@@ -10,10 +10,13 @@ import PopupContext from "../../contexts/popup";
 import Popup from "../Popup";
 import { Container, Imagem, Title } from "./styles";
 import { io } from 'socket.io-client';
+import { Audio } from 'expo-av';
 
 const Home = () => {
   const { setUser } = useContext(AuthContext);
-  const { popup } = useContext(PopupContext);
+  const [permissionResponse, requestPermission] = Audio.usePermissions();
+  const [popup, setPopup] = useState(false);
+  const [popupData, setPopupData] = useState({});
   const [locationPermited, setLocationPermited] = useState(true);
   const [isEnabled, setIsEnabled] = useState(false);
   const [accessToken, setAccessToken] = useState('');
@@ -39,7 +42,15 @@ const Home = () => {
 
   if (isEnabled && isConnected) {
     socket.on('receive-trip', data => {
-      console.log(data);
+      setPopupData(data);
+      setPopup(true);
+
+      // setTimeout(() => {
+      //   setPopup(false);
+      // }, 30 * 1000);
+      setTimeout(() => {
+        setPopup(false);
+      }, 30 * 99999);
     });
   }
 
@@ -83,6 +94,14 @@ const Home = () => {
     setLocationPermited(true);
   }
 
+  async function playSound() {
+    const { status } = await Audio.getPermissionsAsync();
+    console.log(status);
+    if (status !== "granted") {
+      await Audio.requestPermissionsAsync();
+    }
+  }
+
   useEffect(() => {
     requestPermition();
     getAccessToken();
@@ -100,7 +119,7 @@ const Home = () => {
 
   return (
     <>
-      {popup && <Popup />}
+      {popup && <Popup trip={popupData} />}
       <Container>
         {locationPermited ? (
           <>
@@ -110,7 +129,10 @@ const Home = () => {
                 trackColor={{ false: "#767577", true: "#4D4D4D" }}
                 thumbColor={isEnabled ? "#22F100" : "#f4f3f4"}
                 ios_backgroundColor="#3e3e3e"
-                onValueChange={() => setIsEnabled(!isEnabled)}
+                onValueChange={() => {
+                  playSound();
+                  setIsEnabled(!isEnabled)
+                }}
                 value={isEnabled}
                 style={{ marginBottom: 140 }}
               />

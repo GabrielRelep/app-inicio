@@ -80,7 +80,7 @@ export const RouteItem = styled.Text`
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  font-size: 25px;
+  font-size: 16px;
   color: white;
 `;
 
@@ -91,7 +91,7 @@ export const RouteItem2 = styled.Text`
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
-  font-size: 25px;
+  font-size: 16px;
   color: white;
 `;
 

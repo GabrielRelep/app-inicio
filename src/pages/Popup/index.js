@@ -2,6 +2,7 @@ import { Image, Text } from "react-native";
 import Alert from "../../assets/alert.png";
 import PointedDivisor from "../../assets/pointedDivisor.png";
 import Button from "../../components/Button";
+import { Audio } from 'expo-av';
 import {
   Actions,
   ActionsRow,
@@ -22,8 +23,22 @@ import {
   Seats,
   Wrapper,
 } from "./styles";
+import { useEffect } from "react";
 
-const Popup = () => {
+const Popup = ({ trip }) => {
+  useEffect(() => {
+    async function playSound() {
+      const soundObject = new Audio.Sound();
+      try {
+        await soundObject.loadAsync(require('../../../assets/popup.mp3'));
+        await soundObject.playAsync();
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    playSound();
+  }, []);
+
   return (
     <Container>
       <Wrapper>
@@ -31,25 +46,29 @@ const Popup = () => {
           <NotifyIcon>
             <NotifyIconImage source={Alert} />
           </NotifyIcon>
-          <Text style={{ color: "white", fontSize: "22px" }}>Nova chamada</Text>
+          <Text style={{ color: "white" }}>Nova chamada</Text>
           <Seats>
-            <Text style={{ color: "white", fontSize: "22px" }}>4</Text>
+            <Text style={{ color: "white" }}>{trip.seats}</Text>
           </Seats>
         </Notification>
 
         <Details>
-          <Price>R$10</Price>
+          <Price>{trip.cost.total}</Price>
           <Others>10kms - 10</Others>
 
           <RouteWrapper>
             <Route>
               <RouteAddress>
                 <Left>
-                  <Image source={PointedDivisor} style={{ height: 60 }} />
-                  <RouteList>
-                    <RouteItem>trip.route.boardingDistrict</RouteItem>
-                    <RouteItem2>trip.route.landingDistrict</RouteItem2>
-                  </RouteList>
+                  {trip.passengers.map((passenger) => (
+                    <>
+                      <Image source={PointedDivisor} style={{ height: 60 }} />
+                      <RouteList>
+                        <RouteItem>{passenger.boardingAddress.name}</RouteItem>
+                        <RouteItem2>{passenger.landingAddress.name}</RouteItem2>
+                      </RouteList>
+                    </>
+                  ))}
                 </Left>
               </RouteAddress>
             </Route>
