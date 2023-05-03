@@ -56,7 +56,6 @@ function Login() {
         initialValues={{ phone: "", password: "", appId: "" }}
         onSubmit={async (values, { setErrors }) => {
           Keyboard.dismiss();
-          // setLoading(true);
 
           const res = await login({
             appId: values.appId,

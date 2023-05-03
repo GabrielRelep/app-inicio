@@ -11,6 +11,8 @@ import { Container, Imagem, Title } from "./styles";
 import { io } from 'socket.io-client';
 import { Audio } from 'expo-av';
 
+import MyTask from "../../services/MyTask";
+
 const Home = () => {
   const [driverLat, setDriverLat] = useState('');
   const [driverLng, setDriverLng] = useState('');
@@ -21,6 +23,7 @@ const Home = () => {
   const [isEnabled, setIsEnabled] = useState(false);
   const [accessToken, setAccessToken] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const [taskRegistered, setTaskRegistered] = useState(false);
   let socket;
 
   socket = io(`https://chevette.herokuapp.com/drivers`, {
@@ -89,7 +92,6 @@ const Home = () => {
       (userLoc) => {
         setDriverLat(userLoc.coords.latitude);
         setDriverLng(userLoc.coords.longitude);
-        //Retorna latitude e logitude dentro da variável "userLoc"
       }
     );
   }
@@ -111,6 +113,14 @@ const Home = () => {
     if (status !== "granted") {
       await Audio.requestPermissionsAsync();
     }
+  }
+
+  function registerMyTask() {
+    MyTask.register().then(() => console.log("task registered")).catch(error => console.log(error));
+  }
+
+  function unregisterMyTask() {
+    MyTask.unregister().then(() => console.log("task unregistered")).catch(error => console.log(error));;
   }
 
   useEffect(() => {
@@ -149,6 +159,7 @@ const Home = () => {
                 onValueChange={() => {
                   playSound();
                   setIsEnabled(!isEnabled)
+                  registerMyTask();
                 }}
                 value={isEnabled}
                 style={{ marginBottom: 140 }}
@@ -169,7 +180,10 @@ const Home = () => {
           label="Sair"
           color={"#944BBB"}
           style={locationPermited ? { marginTop: 150 } : { marginTop: 30 }}
-          onPress={handleLeave}
+          onPress={() => {
+            // handleLeave();
+            unregisterMyTask();
+          }}
         />
       </Container>
     </>

@@ -43,21 +43,50 @@ import Profile from '../../assets/PassengerProfileImage2.jpg';
 import Line1 from '../../assets/Line1.png';
 import PixSRC from '../../assets/pix.png';
 
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
 const Popup = ({ trip, driverLat, driverLng, onAccept, onRefuse, }) => {
   const [distanceTo, setDistance] = useState('');
   const [timeTo, setTime] = useState('');
 
-  useEffect(() => {
-    async function playSound() {
-      const soundObject = new Audio.Sound();
-      try {
-        await soundObject.loadAsync(require('../../../assets/popup.mp3'));
-        await soundObject.playAsync();
-      } catch (error) {
-        console.log(error);
+  const soundObject = new Audio.Sound();
+
+  async function sendNotification() {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Nova chamada recebida',
+        body: 'Abra o aplicativo para continuar',
+        vibrate: 1,
+        sound: true,
+      },
+      trigger: {
+        seconds: 2,
       }
+    })
+  }
+
+  async function playSound() {
+    try {
+      await soundObject.loadAsync(require('../../../assets/popup.mp3'));
+      await soundObject.playAsync();
+    } catch (error) {
+      console.log(error);
     }
+  }
+
+  useEffect(() => {
     playSound();
+    sendNotification();
+
+    return () => soundObject.stopAsync();
   }, []);
 
   function getCreatedDate(date) {
