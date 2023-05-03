@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import React, { useContext, useEffect, useState } from "react";
-import { Switch, Text, View } from "react-native";
+import { Switch, Text, View, Alert } from "react-native";
 import branco from "../../assets/branco.png";
 import verde from "../../assets/verde.png";
 import Button from "../../components/Button";
@@ -14,9 +14,8 @@ import * as BackgroundFetch from 'expo-background-fetch';
 import * as taskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 
-const TASK_NAME = "MY_TASK";
 
-var taskRegistered = false;
+const TASK_NAME = "MY_TASK";
 
 async function sendNotification() {
   await Notifications.scheduleNotificationAsync({
@@ -33,6 +32,15 @@ async function sendNotification() {
 }
 
 taskManager.defineTask(TASK_NAME, async () => {
+  const soundObject = new Audio.Sound();
+  async function playSound() {
+    try {
+      await soundObject.loadAsync(require('../../../assets/popup.mp3'));
+      await soundObject.playAsync();
+    } catch (error) {
+      console.log(error);
+    }
+  }
   const accessToken = await AsyncStorage.getItem("accessToken");
 
   socket = io(`https://chevette.herokuapp.com/drivers`, {
@@ -53,6 +61,7 @@ taskManager.defineTask(TASK_NAME, async () => {
 
   socket.on('receive-trip', data => {
     sendNotification();
+    playSound();
   });
   try {
     const receivedNewData = "my task oi: " + Math.random();
@@ -155,6 +164,9 @@ const Home = () => {
 
   async function getAccessToken() {
     const accessToken = await AsyncStorage.getItem("accessToken");
+    if (!accessToken) {
+      Alert.alert("Faça o login novamente")
+    }
     setAccessToken(accessToken);
   }
 
