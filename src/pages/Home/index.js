@@ -10,8 +10,86 @@ import Popup from "../Popup";
 import { Container, Imagem, Title } from "./styles";
 import { io } from 'socket.io-client';
 import { Audio } from 'expo-av';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as taskManager from 'expo-task-manager';
+import * as Notifications from 'expo-notifications';
 
-import MyTask from "../../services/MyTask";
+const TASK_NAME = "MY_TASK";
+
+var taskRegistered = false;
+
+async function sendNotification() {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Nova chamada recebida',
+      body: 'Abra o aplicativo para continuar',
+      vibrate: 1,
+      sound: true,
+    },
+    trigger: {
+      seconds: 2,
+    }
+  })
+}
+
+taskManager.defineTask(TASK_NAME, async () => {
+  const accessToken = await AsyncStorage.getItem("accessToken");
+
+  socket = io(`https://chevette.herokuapp.com/drivers`, {
+    auth: {
+      accessToken,
+    },
+    transports: ['websocket'],
+  });
+
+  socket.on('connect', async () => {
+    try {
+      if (socket.connected) console.log("Conectado");
+      else console.log("Desconectado");
+    } catch (error) {
+      console.log(error)
+    }
+  });
+
+  socket.on('receive-trip', data => {
+    sendNotification();
+  });
+  try {
+    const receivedNewData = "my task oi: " + Math.random();
+    return receivedNewData ? BackgroundFetch.BackgroundFetchResult.NewData : BackgroundFetch.BackgroundFetchResult.NoData
+  } catch (error) {
+    return BackgroundFetch.BackgroundFetchResult.Failed;
+  }
+})
+
+const register = () => {
+  return BackgroundFetch.registerTaskAsync(TASK_NAME, {
+    minimumInterval: 1,
+    stopOnTerminate: false,
+  })
+}
+
+const unregister = () => {
+  return BackgroundFetch.unregisterTaskAsync(TASK_NAME)
+}
+function registerMyTask() {
+  register().then(() => console.log("task registered")).catch(error => console.log(error));
+}
+
+function unregisterMyTask() {
+  unregister().then(() => console.log("task unregistered")).catch(error => console.log(error));;
+}
+
+
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
 
 const Home = () => {
   const [driverLat, setDriverLat] = useState('');
@@ -32,7 +110,6 @@ const Home = () => {
     },
     transports: ['websocket'],
   });
-  console.log({ isConnected });
 
   socket.on('connect', async () => {
     try {
@@ -67,13 +144,11 @@ const Home = () => {
   });
 
   function acceptTrip(id) {
-    console.log("aceitou")
     setPopup(false);
     socket.emit('accept-trip', { id });
   }
 
   function refuseTrip(id) {
-    console.log("recusou")
     setPopup(false);
     socket.emit('refuse-trip', { id });
   }
@@ -109,18 +184,9 @@ const Home = () => {
 
   async function playSound() {
     const { status } = await Audio.getPermissionsAsync();
-    console.log(status);
     if (status !== "granted") {
       await Audio.requestPermissionsAsync();
     }
-  }
-
-  function registerMyTask() {
-    MyTask.register().then(() => console.log("task registered")).catch(error => console.log(error));
-  }
-
-  function unregisterMyTask() {
-    MyTask.unregister().then(() => console.log("task unregistered")).catch(error => console.log(error));;
   }
 
   useEffect(() => {
@@ -159,7 +225,14 @@ const Home = () => {
                 onValueChange={() => {
                   playSound();
                   setIsEnabled(!isEnabled)
-                  registerMyTask();
+                  if (taskRegistered) {
+                    unregisterMyTask();
+                    setTaskRegistered(false);
+                  }
+                  else if (!taskRegistered) {
+                    registerMyTask();
+                    setTaskRegistered(true);
+                  }
                 }}
                 value={isEnabled}
                 style={{ marginBottom: 140 }}
@@ -181,8 +254,8 @@ const Home = () => {
           color={"#944BBB"}
           style={locationPermited ? { marginTop: 150 } : { marginTop: 30 }}
           onPress={() => {
-            // handleLeave();
-            unregisterMyTask();
+            handleLeave();
+            // unregisterMyTask();
           }}
         />
       </Container>
