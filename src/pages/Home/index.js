@@ -6,15 +6,15 @@ import branco from "../../assets/branco.png";
 import verde from "../../assets/verde.png";
 import Button from "../../components/Button";
 import AuthContext from "../../contexts/auth";
-import PopupContext from "../../contexts/popup";
 import Popup from "../Popup";
 import { Container, Imagem, Title } from "./styles";
 import { io } from 'socket.io-client';
 import { Audio } from 'expo-av';
 
 const Home = () => {
+  const [driverLat, setDriverLat] = useState('');
+  const [driverLng, setDriverLng] = useState('');
   const { setUser } = useContext(AuthContext);
-  const [permissionResponse, requestPermission] = Audio.usePermissions();
   const [popup, setPopup] = useState(false);
   const [popupData, setPopupData] = useState({});
   const [locationPermited, setLocationPermited] = useState(true);
@@ -45,12 +45,9 @@ const Home = () => {
       setPopupData(data);
       setPopup(true);
 
-      // setTimeout(() => {
-      //   setPopup(false);
-      // }, 30 * 1000);
       setTimeout(() => {
         setPopup(false);
-      }, 30 * 99999);
+      }, 30 * 1000);
     });
   }
 
@@ -66,6 +63,18 @@ const Home = () => {
     console.log('Socket Disconnected', err);
   });
 
+  function acceptTrip(id) {
+    console.log("aceitou")
+    setPopup(false);
+    socket.emit('accept-trip', { id });
+  }
+
+  function refuseTrip(id) {
+    console.log("recusou")
+    setPopup(false);
+    socket.emit('refuse-trip', { id });
+  }
+
   async function getAccessToken() {
     const accessToken = await AsyncStorage.getItem("accessToken");
     setAccessToken(accessToken);
@@ -78,6 +87,8 @@ const Home = () => {
         distanceInterval: 1,
       },
       (userLoc) => {
+        setDriverLat(userLoc.coords.latitude);
+        setDriverLng(userLoc.coords.longitude);
         //Retorna latitude e logitude dentro da variável "userLoc"
       }
     );
@@ -119,7 +130,13 @@ const Home = () => {
 
   return (
     <>
-      {popup && <Popup trip={popupData} />}
+      {popup && <Popup
+        trip={popupData}
+        driverLng={driverLng}
+        driverLat={driverLat}
+        onAccept={() => acceptTrip(popupData.id)}
+        onRefuse={() => refuseTrip(popupData.id)}
+      />}
       <Container>
         {locationPermited ? (
           <>
@@ -142,7 +159,7 @@ const Home = () => {
           </>
         ) : (
           <View style={{ flexDirection: "row" }}>
-            <Text style={{ fontSize: 16 }}>
+            <Text>
               Você precisa autorizar a localização no app.
             </Text>
           </View>
