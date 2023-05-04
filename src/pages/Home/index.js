@@ -129,12 +129,13 @@ const Home = () => {
     }
   });
 
-  if (isEnabled && isConnected) {
+  if (isEnabled && isConnected && !popup) {
     socket.on('receive-trip', data => {
       setPopupData(data);
       setPopup(true);
 
       setTimeout(() => {
+        setIsEnabled(true);
         setPopup(false);
       }, 30 * 1000);
     });
