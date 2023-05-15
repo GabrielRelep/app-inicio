@@ -1,5 +1,6 @@
 const { default: axios } = require("axios");
 import { API_KEY, API_URL } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const api = axios.create({
   baseURL: `${API_URL}/apps`,
@@ -7,6 +8,16 @@ const api = axios.create({
     "X-Chevette-Key": `${API_KEY}`,
   },
 });
+
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem("accessToken");
+
+  if (token) {
+    config.headers.Authorization = token;
+  }
+
+  return config
+})
 
 module.exports.login = async (data) => {
   var response;
@@ -39,3 +50,22 @@ module.exports.login = async (data) => {
 
   return response;
 };
+
+export async function getAppInfo(appId) {
+  try {
+    const response = await api.get(`/${appId}`);
+    return response.data
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function updateDriver(appId, driver) {
+  const { id } = driver
+  try {
+    const response = await api.put(`/${appId}/driver/${id}`, driver);
+    return response.data
+  } catch (error) {
+    console.error(error)
+  }
+}
