@@ -9,11 +9,19 @@ const api = axios.create({
   },
 });
 
+const adminApi = axios.create({
+  baseURL: `${API_URL}/admin/apps`,
+  headers: {
+    "X-Chevette-Key": `${API_KEY}`,
+  },
+});
+
+
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem("accessToken");
 
   if (token) {
-    config.headers.Authorization = token;
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
   return config
@@ -53,10 +61,10 @@ module.exports.login = async (data) => {
 
 export async function getAppInfo(appId) {
   try {
-    const response = await api.get(`/${appId}`);
+    const response = await adminApi.get(`/${appId}`);
     return response.data
   } catch (error) {
-    console.error(error)
+    console.error('getAppInfo ERROR', error)
   }
 }
 
