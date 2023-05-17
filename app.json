@@ -14,14 +14,27 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "development"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.weptek.alertpro",
       "buildNumber": "1.0.0",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["location", "fetch"],
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ],
         "CFBundleAllowMixedLocalizations": true,
         "NSLocationAlwaysAndWhenInUseUsageDescription": "App requires geolocation to improve the quality of the service",
         "NSLocationAlwaysUsageDescription": "App requires geolocation to improve the quality of the service",
@@ -47,6 +60,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "oneSignalAppId": "80cc9e65-8ac6-4252-808f-eec1ee0be6b3",
       "eas": {
         "projectId": "afeef9e7-8f5e-4281-ad64-9696c57404d1"
       }
