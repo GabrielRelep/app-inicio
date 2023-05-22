@@ -68,6 +68,7 @@ function Login() {
               (item) => item.accountType === "driver"
             );
 
+            await AsyncStorage.setItem("@appId", values.appId);
             await AsyncStorage.setItem("@user", JSON.stringify(driverData));
             await AsyncStorage.setItem("accessToken", driverData.accessToken);
             setUser(driverData);

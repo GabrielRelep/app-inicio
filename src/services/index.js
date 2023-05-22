@@ -77,3 +77,12 @@ export async function updateDriver(appId, driver) {
     console.error(error)
   }
 }
+
+export async function updateDriverOnlineStatus(appId,) {
+  try {
+    const response = await api.put(`/${appId}/drivers/${id}/update-online-status`, driver);
+    return response.data
+  } catch (error) {
+    console.error(error)
+  }
+}

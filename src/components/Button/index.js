@@ -3,7 +3,13 @@ import { ActivityIndicator, View } from "react-native";
 
 import { Container, Label } from "./styles";
 
-const Button = ({ label, color, isLoading, disabled, loaderColor = "#fff", ...rest }) => {
+const Button = ({
+  label,
+  color,
+  isLoading = false,
+  disabled = false,
+  loaderColor = "#fff",
+  ...rest }) => {
   return (
     <Container color={color} disabled={isLoading || disabled} {...rest} >
       {isLoading
