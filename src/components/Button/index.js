@@ -1,11 +1,15 @@
 import React from "react";
+import { ActivityIndicator, View } from "react-native";
 
 import { Container, Label } from "./styles";
 
-const Button = ({ label, color, ...rest }) => {
+const Button = ({ label, color, isLoading, disabled, loaderColor = "#fff", ...rest }) => {
   return (
-    <Container {...rest} color={color}>
-      <Label>{label}</Label>
+    <Container color={color} disabled={isLoading || disabled} {...rest} >
+      {isLoading
+        ? <ActivityIndicator size="small" color={loaderColor} />
+        : <Label>{label}</Label>
+      }
     </Container>
   );
 };
