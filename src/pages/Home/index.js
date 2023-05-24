@@ -1,21 +1,22 @@
-import React, { useContext, useEffect, useState } from "react";
-import { Switch, Text, View, Alert } from "react-native";
-import * as Location from "expo-location";
-import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from 'expo-location';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useContext, useEffect, useState } from 'react';
+import { Switch, Text, View, Alert } from 'react-native';
 import { io } from 'socket.io-client';
 
-import branco from "../../assets/branco.png";
-import verde from "../../assets/verde.png";
-import Button from "../../components/Button";
-import AuthContext from "../../contexts/auth";
-import Popup from "../Popup";
-import { Container, Imagem, Title } from "./styles";
-import { registerMyTask, unregisterMyTask } from "./background-fetch";
-import { getAppInfo } from "../../services";
+import { registerMyTask, unregisterMyTask } from './receive-trip-background';
+import { Container, Imagem, Title } from './styles';
+import { registerUpdateDriverLocationTask } from './update-location-background';
+import branco from '../../assets/branco.png';
+import verde from '../../assets/verde.png';
+import Button from '../../components/Button';
+import AuthContext from '../../contexts/auth';
+import { getAppInfo } from '../../services';
+import Popup from '../Popup';
 
-const Home = () => {
+function Home() {
   const [driverLat, setDriverLat] = useState('');
   const [driverLng, setDriverLng] = useState('');
   const { setUser, user } = useContext(AuthContext);
@@ -26,7 +27,8 @@ const Home = () => {
   const [accessToken, setAccessToken] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [taskRegistered, setTaskRegistered] = useState(false);
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [isOnTrip, setIsOnTrip] = useState(false);
 
   const socket = io(`https://chevette.herokuapp.com/drivers`, {
     auth: {
@@ -40,12 +42,12 @@ const Home = () => {
       if (socket.connected) setIsConnected(true);
       else setIsConnected(false);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   });
 
   if (isEnabled && isConnected && !popup) {
-    socket.on('receive-trip', data => {
+    socket.on('receive-trip', (data) => {
       setPopupData(data);
       setPopup(true);
 
@@ -56,22 +58,26 @@ const Home = () => {
     });
   }
 
-  socket.on('connect_error', err => {
+  socket.on('connect_error', (err) => {
     console.log('Error on Socket Connection', err);
   });
 
-  socket.on('connect_failed', err => {
+  socket.on('connect_failed', (err) => {
     console.log('Socket Connection Failed', err);
   });
 
-  socket.on('disconnect', err => {
+  socket.on('disconnect', (err) => {
     console.log('Socket Disconnected', err);
   });
 
+  // socket.on('in-trip', (data) => {
+  //   if (data) setIsOnTrip(true);
+  // });
+
   async function acceptTrip(id) {
     setLoading(true);
-    const appId = await AsyncStorage.getItem("@appId");
-    const { domain } = await getAppInfo(appId)
+    const appId = await AsyncStorage.getItem('@appId');
+    const { domain } = await getAppInfo(appId);
     await WebBrowser.openBrowserAsync(`http://weptek.app/${domain}`);
     socket.emit('accept-trip', { id });
     setLoading(false);
@@ -84,11 +90,11 @@ const Home = () => {
   }
 
   async function getAccessToken() {
-    const accessToken = await AsyncStorage.getItem("accessToken");
-    if (!accessToken) {
-      Alert.alert("Faça o login novamente")
+    const token = await AsyncStorage.getItem('accessToken');
+    if (!token) {
+      Alert.alert('Faça o login novamente');
     }
-    setAccessToken(accessToken);
+    setAccessToken(token);
   }
 
   async function loadLocation() {
@@ -105,26 +111,30 @@ const Home = () => {
   }
 
   async function requestPermition() {
-    let { status } = await Location.requestForegroundPermissionsAsync();
+    const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
 
-    if (status !== "granted") {
+    if (foregroundStatus === 'granted') {
+      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      if (backgroundStatus === 'granted') {
+        setLocationPermited(true);
+      } else {
+        setLocationPermited(false);
+      }
+    } else {
       setLocationPermited(false);
-      return;
     }
-
-    setLocationPermited(true);
   }
 
   async function playSound() {
     const { status } = await Audio.getPermissionsAsync();
-    if (status !== "granted") {
+    if (status !== 'granted') {
       await Audio.requestPermissionsAsync();
     }
   }
 
   const handleLeave = () => {
     async function removeUser() {
-      await AsyncStorage.removeItem("@user");
+      await AsyncStorage.removeItem('@user');
       setUser(null);
     }
 
@@ -133,40 +143,46 @@ const Home = () => {
 
   const handleSwitchChange = () => {
     playSound();
-    setIsEnabled(enabled => !enabled)
+    setIsEnabled((enabled) => !enabled);
     if (taskRegistered) {
       unregisterMyTask();
       setTaskRegistered(false);
-    }
-    else if (!taskRegistered) {
+    } else if (!taskRegistered) {
       registerMyTask();
       setTaskRegistered(true);
     }
-  }
+  };
 
   useEffect(() => {
     requestPermition();
     getAccessToken();
     loadLocation();
+    registerUpdateDriverLocationTask();
   }, []);
+
+  // useEffect(() => {
+  //   registerUpdateDriverLocationTask()
+  // }, [isOnTrip])
 
   return (
     <>
-      {popup && <Popup
-        trip={popupData}
-        driverLng={driverLng}
-        driverLat={driverLat}
-        onAccept={() => acceptTrip(popupData.id)}
-        onRefuse={() => refuseTrip(popupData.id)}
-      />}
+      {popup && (
+        <Popup
+          trip={popupData}
+          driverLng={driverLng}
+          driverLat={driverLat}
+          onAccept={() => acceptTrip(popupData.id)}
+          onRefuse={() => refuseTrip(popupData.id)}
+        />
+      )}
       <Container>
         {locationPermited ? (
           <>
-            <View style={{ flexDirection: "row", }}>
+            <View style={{ flexDirection: 'row' }}>
               <Title>Off</Title>
               <Switch
-                trackColor={{ false: "#767577", true: "#4D4D4D" }}
-                thumbColor={isEnabled ? "#22F100" : "#f4f3f4"}
+                trackColor={{ false: '#767577', true: '#4D4D4D' }}
+                thumbColor={isEnabled ? '#22F100' : '#f4f3f4'}
                 ios_backgroundColor="#3e3e3e"
                 onValueChange={handleSwitchChange}
                 value={isEnabled}
@@ -177,17 +193,15 @@ const Home = () => {
             {isEnabled ? <Imagem source={verde} /> : <Imagem source={branco} />}
           </>
         ) : (
-          <View style={{ flexDirection: "row" }}>
-            <Text>
-              Você precisa autorizar a localização no app.
-            </Text>
+          <View style={{ flexDirection: 'row' }}>
+            <Text>Você precisa autorizar a localização no app.</Text>
           </View>
         )}
 
         <Button
           isLoading={loading}
           label="Sair"
-          color={"#944BBB"}
+          color="#944BBB"
           style={locationPermited ? { marginTop: 150 } : { marginTop: 30 }}
           onPress={() => {
             handleLeave();
@@ -196,6 +210,6 @@ const Home = () => {
       </Container>
     </>
   );
-};
+}
 
 export default Home;

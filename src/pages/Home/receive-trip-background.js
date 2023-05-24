@@ -1,8 +1,11 @@
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as taskManager from 'expo-task-manager';
-import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Audio } from 'expo-av';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as Notifications from 'expo-notifications';
+import * as taskManager from 'expo-task-manager';
 import { io } from 'socket.io-client';
+
+import popupSound from '../../../assets/popup.mp3';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -12,7 +15,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const TASK_NAME = "MY_TASK";
+const TASK_NAME = 'MY_TASK';
 
 async function sendNotification() {
   await Notifications.scheduleNotificationAsync({
@@ -24,24 +27,24 @@ async function sendNotification() {
     },
     trigger: {
       seconds: 2,
-    }
+    },
   });
 }
 
 async function playSound() {
   const soundObject = new Audio.Sound();
   try {
-    await soundObject.loadAsync(require('../../../assets/popup.mp3'));
+    await soundObject.loadAsync(popupSound);
     await soundObject.playAsync();
   } catch (error) {
     console.log(error);
   }
 }
 
-taskManager.defineTask(TASK_NAME, async () => {
-  const accessToken = await AsyncStorage.getItem("accessToken");
+taskManager.defineTask(TASK_NAME, async ({ data }) => {
+  const accessToken = await AsyncStorage.getItem('accessToken');
 
-  socket = io(`https://chevette.herokuapp.com/drivers`, {
+  const socket = io(`https://chevette.herokuapp.com/drivers`, {
     auth: {
       accessToken,
     },
@@ -51,9 +54,9 @@ taskManager.defineTask(TASK_NAME, async () => {
   socket.on('connect', async () => {
     try {
       if (socket.connected) {
-        console.log("Conectado");
+        console.log('Conectado');
       } else {
-        console.log("Desconectado");
+        console.log('Desconectado');
       }
     } catch (error) {
       console.log(error);
@@ -66,32 +69,31 @@ taskManager.defineTask(TASK_NAME, async () => {
   });
 
   try {
-    const receivedNewData = "my task oi: " + Math.random();
-    return receivedNewData ? BackgroundFetch.BackgroundFetchResult.NewData : BackgroundFetch.BackgroundFetchResult.NoData;
+    const receivedNewData = `my task oi: ${Math.random()}`;
+    return receivedNewData
+      ? BackgroundFetch.BackgroundFetchResult.NewData
+      : BackgroundFetch.BackgroundFetchResult.NoData;
   } catch (error) {
     return BackgroundFetch.BackgroundFetchResult.Failed;
   }
 });
 
-const register = () => {
-  return BackgroundFetch.registerTaskAsync(TASK_NAME, {
+const register = () =>
+  BackgroundFetch.registerTaskAsync(TASK_NAME, {
     minimumInterval: 1,
     stopOnTerminate: false,
   });
-};
 
-const unregister = () => {
-  return BackgroundFetch.unregisterTaskAsync(TASK_NAME);
-};
+const unregister = () => BackgroundFetch.unregisterTaskAsync(TASK_NAME);
 
 export function registerMyTask() {
   register()
-    .then(() => console.log("Task registered"))
-    .catch(error => console.log(error));
+    .then(() => console.log('Task registered'))
+    .catch((error) => console.log(error));
 }
 
 export function unregisterMyTask() {
   unregister()
-    .then(() => console.log("Task unregistered"))
-    .catch(error => console.log(error));
+    .then(() => console.log('Task unregistered'))
+    .catch((error) => console.log(error));
 }

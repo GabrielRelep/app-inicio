@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Alert-pro",
-    "slug": "Alert-pro",
+    "slug": "alert-pro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,6 +22,13 @@
         "onesignal-expo-plugin",
         {
           "mode": "development"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "isAndroidBackgroundLocationEnabled": true,
+          "locationAlwaysAndWhenInUsePermission": "Permita Alert Pro usar sua localização."
         }
       ]
     ],
@@ -53,7 +60,10 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "READ_MEDIA_AUDIO",
-        "WRITE_MEDIA_AUDIO"
+        "WRITE_MEDIA_AUDIO",
+        "ACCESS_BACKGROUND_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -62,7 +72,7 @@
     "extra": {
       "oneSignalAppId": "80cc9e65-8ac6-4252-808f-eec1ee0be6b3",
       "eas": {
-        "projectId": "afeef9e7-8f5e-4281-ad64-9696c57404d1"
+        "projectId": "f8321e2c-be8b-4cd8-bfa5-a983b0ed0ddc"
       }
     }
   }
