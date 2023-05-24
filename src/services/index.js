@@ -1,37 +1,37 @@
-const { default: axios } = require("axios");
-import { API_KEY, API_URL } from "@env";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_KEY, API_URL } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const { default: axios } = require('axios');
 
 const api = axios.create({
   baseURL: `${API_URL}/apps`,
   headers: {
-    "X-Chevette-Key": `${API_KEY}`,
+    'X-Chevette-Key': `${API_KEY}`,
   },
 });
 
 const adminApi = axios.create({
   baseURL: `${API_URL}/admin/apps`,
   headers: {
-    "X-Chevette-Key": `${API_KEY}`,
+    'X-Chevette-Key': `${API_KEY}`,
   },
 });
 
-
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem("accessToken");
+  const token = await AsyncStorage.getItem('accessToken');
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  return config
-})
+  return config;
+});
 
 module.exports.login = async (data) => {
-  var response;
+  let response;
 
   await api
-    .post("/" + data.appId + "/auth/login", {
+    .post(`/${data.appId}/auth/login`, {
       phone: data.phone,
       password: data.password,
     })
@@ -46,12 +46,12 @@ module.exports.login = async (data) => {
       if (error.response.status === 401) {
         response = {
           code: 401,
-          message: "Telefone e/ou senha incorretos.",
+          message: 'Telefone e/ou senha incorretos.',
         };
       } else {
         response = {
           code: error.response.status,
-          message: "Houve um erro ao realizar login, tente novamente.",
+          message: 'Houve um erro ao realizar login, tente novamente.',
         };
       }
     });
@@ -62,27 +62,30 @@ module.exports.login = async (data) => {
 export async function getAppInfo(appId) {
   try {
     const response = await adminApi.get(`/${appId}`);
-    return response.data
+    return response.data;
   } catch (error) {
-    console.error('getAppInfo ERROR', error)
+    console.error('getAppInfo ERROR', error);
+    return error;
   }
 }
 
 export async function updateDriver(appId, driver) {
-  const { id } = driver
+  const { id } = driver;
   try {
     const response = await api.put(`/${appId}/driver/${id}`, driver);
-    return response.data
+    return response.data;
   } catch (error) {
-    console.error(error)
+    console.error(error);
+    return error;
   }
 }
 
-export async function updateDriverOnlineStatus(appId,) {
+export async function updateDriverOnlineStatus(appId, driverId) {
   try {
-    const response = await api.put(`/${appId}/drivers/${id}/update-online-status`, driver);
-    return response.data
+    const response = await api.put(`/${appId}/drivers/${driverId}/update-online-status`);
+    return response.data;
   } catch (error) {
-    console.error(error)
+    console.error(error);
+    return error;
   }
 }
